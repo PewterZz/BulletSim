@@ -1,3 +1,4 @@
+
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
@@ -84,6 +85,33 @@ def draw_target():
     glPopMatrix()
 
 
+def create_target_pieces():
+    # Create individual target pieces
+    piece_size = 0.5
+    piece_mass = 1.0
+    piece_collision_shapes = []
+    piece_collision_ids = []
+    positions = [
+        [0.25, 0.25, -10],
+        [-0.25, 0.25, -10],
+        [0.25, -0.25, -10],
+        [-0.25, -0.25, -10]
+    ]
+
+    for position in positions:
+        collision_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[piece_size, piece_size, piece_size])
+        piece_collision_shapes.append(collision_shape)
+        visual_shape = -1  # No visual representation, only collision shape
+        collision_id = p.createMultiBody(
+            baseCollisionShapeIndex=collision_shape,
+            baseVisualShapeIndex= visual_shape,
+            baseMass=piece_mass,
+            basePosition=position
+        )
+        piece_collision_ids.append(collision_id)
+
+    return piece_collision_shapes, piece_collision_ids
+
 
 def main():
     pygame.init()
@@ -139,8 +167,10 @@ def main():
         basePosition=[0, 1, -10]  # Position the target
     )
 
+    target_piece_collision_shapes, target_piece_collision_ids = create_target_pieces()
+
     bullets = []
-    bullet_speed = 50.0
+    bullet_speed = 200.0
 
     while True:
         dt = clock.tick(60) / 1000.0  # Get time since last frame in seconds
@@ -149,7 +179,9 @@ def main():
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                 # Left mouse button pressed, shoot a bullet
-                bullets.append(camera_pos + camera_front * 0.5)
+                bullet_pos = camera_pos + camera_front * 0.5  # Initial position of the bullet
+                bullet_vel = camera_front * bullet_speed  # Initial velocity of the bullet
+                bullets.append((bullet_pos, bullet_vel))  
 
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -204,28 +236,43 @@ def main():
 
         p.stepSimulation()
 
-        for bullet in bullets:
-            bullet += camera_front * bullet_speed * dt  # Move the bullet forward
-            draw_bullet(bullet)
+        bullets_to_remove = []  # List to store bullets that need to be removed
 
-            # Update the bullet position in PyBullet
+        for bullet_pos, bullet_vel in bullets:
+            bullet_pos += bullet_vel * dt  # Move the bullet based on its velocity
+            bullet_vel += np.array([0.0, gravity, 0.0]) * dt  # Apply gravity to the bullet velocity
+            draw_bullet(bullet_pos)
+
+            # Update the bullet position and velocity in PyBullet
             p.resetBasePositionAndOrientation(
                 bullet_collision_id,
-                [bullet[0], bullet[1], bullet[2]],
+                [bullet_pos[0], bullet_pos[1], bullet_pos[2]],
                 [0, 0, 0, 1]  # Bullet orientation (identity quaternion)
             )
+            p.resetBaseVelocity(bullet_collision_id, [bullet_vel[0], bullet_vel[1], bullet_vel[2]])
 
-            # Check for collision with the target in PyBullet
-            contact_points = p.getContactPoints(bullet_collision_id, target_collision_id)
-            if contact_points:
-                # Bullet collided with the target
-                print("Bullet hit the target!")
+            # Check for collision with the target pieces in PyBullet
+            for collision_id in target_piece_collision_ids:
+                contact_points = p.getContactPoints(bullet_collision_id, collision_id)
+                if contact_points:
+                    # Bullet collided with a target piece
+                    print("Bullet hit a target piece!")
+                    # Remove the collided target piece from the simulation
+                    p.removeBody(collision_id)
+                    target_piece_collision_ids.remove(collision_id)
+                    # Step the simulation again to update the target state
+                    p.stepSimulation()
 
-        # Remove bullets that are out of bounds
-        bullets = [bullet for bullet in bullets if bullet[2] > -50]
+                    # Add the bullet to the removal list
+                    bullets_to_remove.append((bullet_pos, bullet_vel))
+
+        # Remove bullets that are out of bounds or have hit a target piece
+        for bullet in bullets_to_remove:
+            bullets.remove(bullet)
+
 
         draw_target()
-        
+
         draw_floor() 
         pygame.display.flip()
 
