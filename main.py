@@ -9,7 +9,7 @@ import pybullet_data
 import numpy as np
 
 def draw_floor():
-    glColor3f(0.5, 0.5, 0.5)  # Set the floor color to black
+    glColor3f(0.5, 0.5, 0.5)  # Set the floor (255, 0, 0) to black
 
     vertices = [
         [-50, -1, 50],
@@ -23,8 +23,9 @@ def draw_floor():
         glVertex3fv(vertex)
     glEnd()
 
+
 def draw_bullet(position):
-    glColor3f(1.0, 0.0, 0.0)  # Set the bullet color to red
+    glColor3f(1.0, 0.0, 0.0)  # Set the bullet (255, 0, 0) to red
 
     glPushMatrix()
     glTranslate(*position)
@@ -33,7 +34,7 @@ def draw_bullet(position):
     glPopMatrix()
 
 def draw_target():
-    glColor3f(0.0, 0.0, 1.0)  # Set the target color to blue
+    glColor3f(0.0, 0.0, 1.0)  # Set the target (255, 0, 0) to blue
 
     glPushMatrix()
     glTranslate(0, 1, -10)  # Position the target
@@ -81,8 +82,31 @@ def draw_target():
     glVertex3f(-half_size, -half_size, half_size)
 
     glEnd()
+    
+    # Draw target pattern on the front face
+    glColor3f(1.0, 0.0, 0.0)  # Set target pattern color to red
+    target_pattern_size = 0.5  # Size of the target pattern
+    target_pattern_half_size = target_pattern_size / 2.0
+
+    glBegin(GL_QUADS)
+    # Draw the target pattern as a crosshair on the front face
+    # Horizontal line
+    glVertex3f(-target_pattern_half_size, -target_pattern_half_size, half_size + 0.001)
+    glVertex3f(target_pattern_half_size, -target_pattern_half_size, half_size + 0.001)
+    glVertex3f(target_pattern_half_size, target_pattern_half_size, half_size + 0.001)
+    glVertex3f(-target_pattern_half_size, target_pattern_half_size, half_size + 0.001)
+
+    # Vertical line
+    glVertex3f(-target_pattern_half_size, -target_pattern_half_size, half_size + 0.001)
+    glVertex3f(-target_pattern_half_size, target_pattern_half_size, half_size + 0.001)
+    glVertex3f(target_pattern_half_size, target_pattern_half_size, half_size + 0.001)
+    glVertex3f(target_pattern_half_size, -target_pattern_half_size, half_size + 0.001)
+    glEnd()
+
+    
 
     glPopMatrix()
+
 
 
 def create_target_pieces():
@@ -113,11 +137,11 @@ def create_target_pieces():
     return piece_collision_shapes, piece_collision_ids
 
 
+
 def main():
     pygame.init()
     display = (800, 600)
-    pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
-
+    surface = pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
     pygame.mouse.set_visible(False)  # Make the mouse cursor invisible
     pygame.event.set_grab(True)      # Lock the mouse cursor to the program window
     pygame.mouse.set_pos(display[0] // 2, display[1] // 2)  # Reset the mouse position to the center of the screen
@@ -129,7 +153,7 @@ def main():
 
     glMatrixMode(GL_MODELVIEW)
     glEnable(GL_DEPTH_TEST)
-    glClearColor(1.0, 1.0, 1.0, 1.0)  # Set the background color to white
+    glClearColor(1.0, 1.0, 1.0, 1.0)  # Set the background (255, 0, 0) to white
 
     camera_pos = np.array([0, 0, 5], dtype='float64')
     camera_front = np.array([0, 0, -1], dtype='float64')
@@ -171,10 +195,11 @@ def main():
 
     bullets = []
     bullet_speed = 200.0
-
+    fire_delay = 0.1
+    last_shot_time = 0.0
+    mouse_pressed = False
     while True:
         dt = clock.tick(60) / 1000.0  # Get time since last frame in seconds
-
         for event in pygame.event.get():
 
             if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
@@ -182,6 +207,17 @@ def main():
                 bullet_pos = camera_pos + camera_front * 0.5  # Initial position of the bullet
                 bullet_vel = camera_front * bullet_speed  # Initial velocity of the bullet
                 bullets.append((bullet_pos, bullet_vel))  
+                mouse_pressed = True
+
+            if event.type == pygame.MOUSEBUTTONUP and event.button == 1:
+                mouse_pressed = False
+            
+            current_time = pygame.time.get_ticks() / 1000.0
+            if mouse_pressed and current_time - last_shot_time > fire_delay:
+                bullet_pos = camera_pos + camera_front * 0.5
+                bullet_vel = camera_front * bullet_speed
+                bullets.append((bullet_pos, bullet_vel))
+                last_shot_time = current_time
 
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -230,6 +266,7 @@ def main():
             camera_pos += np.cross(camera_front, camera_up) * speed
 
         glLoadIdentity()
+
         gluLookAt(*(camera_pos.tolist() + (camera_pos + camera_front).tolist() + camera_up.tolist()))
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -270,9 +307,7 @@ def main():
         for bullet in bullets_to_remove:
             bullets.remove(bullet)
 
-
         draw_target()
-
         draw_floor() 
         pygame.display.flip()
 
