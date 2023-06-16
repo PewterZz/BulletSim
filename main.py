@@ -1,4 +1,3 @@
-
 import pygame
 from pygame.locals import *
 from OpenGL.GL import *
@@ -7,6 +6,15 @@ from OpenGL.GLUT import glutSolidSphere
 import pybullet as p
 import pybullet_data
 import numpy as np
+
+def draw_object(position):
+    glColor3f(0.0, 1.0, 0.0)  # Set the object (255, 0, 0) to green
+
+    glPushMatrix()
+    glTranslate(*position)
+    quadric = gluNewQuadric()
+    gluSphere(quadric, 0.5, 8, 8)  # Draw a sphere with radius 0.5
+    glPopMatrix()
 
 def draw_floor():
     glColor3f(0.5, 0.5, 0.5)  # Set the floor (255, 0, 0) to black
@@ -180,6 +188,15 @@ def main():
         baseVisualShapeIndex=bullet_visual_shape,
         baseMass=bullet_mass
     )
+    object_collision_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=0.5)
+    object_visual_shape = -1  # No visual representation, only collision shape
+    object_mass = 1.0
+    object_collision_id = p.createMultiBody(
+        baseCollisionShapeIndex=object_collision_shape,
+        baseVisualShapeIndex=object_visual_shape,
+        baseMass=object_mass,
+        basePosition=[0, 1, -5]  # Position the object
+    )
 
     target_collision_shape = p.createCollisionShape(p.GEOM_BOX, halfExtents=[1, 1, 1])
     target_visual_shape = -1  # No visual representation, only collision shape
@@ -243,9 +260,23 @@ def main():
                     # Jump if space is pressed
                     if abs(camera_pos[1]) < 0.001:
                         velocity[1] = jump_speed
+        contact_points = p.getContactPoints(bullet_collision_id, object_collision_id)
+        if contact_points:
+            # Bullet collided with the object
+            print("Bullet hit the object!")
+            # Remove the object from the simulation
+            p.removeBody(object_collision_id)
+            # Step the simulation again to update the object state
+            p.stepSimulation()
+
+            # Add the bullet to the removal list
+            bullets_to_remove.append((bullet_pos, bullet_vel))
+        
 
         keys = pygame.key.get_pressed()
         speed = 5.0 * dt
+
+        
 
         # Apply gravity to the camera's vertical position
         velocity[1] += gravity * dt
@@ -315,4 +346,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
