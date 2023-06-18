@@ -8,30 +8,22 @@ import pybullet_data
 import numpy as np
 
 def draw_object(position):
-    glColor3f(0.0, 1.0, 0.0)  # Set the object (255, 0, 0) to green
+    glColor3f(0.0, 1.0, 0.0)  # Set the object color to green
 
     glPushMatrix()
     glTranslate(*position)
-    quadric = gluNewQuadric()
-    gluSphere(quadric, 0.5, 8, 8)  # Draw a sphere with radius 0.5
+    glutSolidSphere(0.5, 8, 8)  # Draw a sphere with radius 0.5
     glPopMatrix()
 
 def draw_floor():
-    glColor3f(0.5, 0.5, 0.5)  # Set the floor (255, 0, 0) to black
-
-    vertices = [
-        [-50, -1, 50],
-        [50, -1, 50],
-        [50, -1, -50],
-        [-50, -1, -50]
-    ]
+    glColor3f(0.5, 0.5, 0.5)  # Set the floor color to gray
 
     glBegin(GL_QUADS)
-    for vertex in vertices:
-        glVertex3fv(vertex)
+    glVertex3f(-50, -1, 50)
+    glVertex3f(50, -1, 50)
+    glVertex3f(50, -1, -50)
+    glVertex3f(-50, -1, -50)
     glEnd()
-
-
 def draw_bullet(position):
     glColor3f(1.0, 0.0, 0.0)  # Set the bullet (255, 0, 0) to red
 
@@ -188,6 +180,7 @@ def main():
         baseVisualShapeIndex=bullet_visual_shape,
         baseMass=bullet_mass
     )
+
     object_collision_shape = p.createCollisionShape(p.GEOM_SPHERE, radius=0.5)
     object_visual_shape = -1  # No visual representation, only collision shape
     object_mass = 1.0
@@ -305,7 +298,7 @@ def main():
         p.stepSimulation()
 
         bullets_to_remove = []  # List to store bullets that need to be removed
-
+        bullet_pos, bullet_orn = p.getBasePositionAndOrientation(bullet_collision_id)
         for bullet_pos, bullet_vel in bullets:
             bullet_pos += bullet_vel * dt  # Move the bullet based on its velocity
             bullet_vel += np.array([0.0, gravity, 0.0]) * dt  # Apply gravity to the bullet velocity
@@ -337,7 +330,7 @@ def main():
         # Remove bullets that are out of bounds or have hit a target piece
         for bullet in bullets_to_remove:
             bullets.remove(bullet)
-
+        draw_object()
         draw_target()
         draw_floor() 
         pygame.display.flip()
