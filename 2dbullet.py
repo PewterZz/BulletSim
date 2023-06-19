@@ -18,7 +18,12 @@ WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 BLUE = (0, 0, 255)
 
+font = pygame.font.Font('freesansbold.ttf', 32)
+small_font = pygame.font.Font('freesansbold.ttf', 12)
+input_rect = pygame.Rect(200, 200, 140, 32)
+user_text = 'hello'
 bullet_speed = 10
+spin_rate = 0
 
 # Define bullet class
 class Bullet(pygame.sprite.Sprite):
@@ -58,6 +63,7 @@ class Bullet(pygame.sprite.Sprite):
 
         if self.rect.right < 0 or self.rect.left > screen_width or self.rect.bottom < 0 or self.rect.top > screen_height:
             self.kill()
+
 
 # Define cube class
 class Cube(pygame.sprite.Sprite):
@@ -162,12 +168,18 @@ while running:
             running = False
 
         if event.type == pygame.KEYDOWN:
+            user_text += event.unicode
+            
             if event.key == pygame.K_UP:
                 bullet_speed += 2
             elif event.key == pygame.K_DOWN:
                 bullet_speed -= 2
                 if bullet_speed < 0:
                     bullet_speed = 0
+            elif event.key == pygame.K_LEFT:
+                spin_rate -= 1
+            elif event.key == pygame.K_RIGHT:
+                spin_rate += 1
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -175,8 +187,7 @@ while running:
                 bullet_angle = random.uniform(-5, 5)
                 bullet_shape = 0.01  # Example shape (can be adjusted)
                 bullet_drag_coefficient = 0.3  # Example drag coefficient (can be adjusted)
-                bullet_spin_rate = 100.0  # Example spin rate (can be adjusted)
-                bullet = Bullet(*mouse_pos, bullet_angle, bullet_speed, bullet_shape, bullet_drag_coefficient, bullet_spin_rate)
+                bullet = Bullet(*mouse_pos, bullet_angle, bullet_speed, bullet_shape, bullet_drag_coefficient, spin_rate)
                 all_sprites.add(bullet)
                 bullets.add(bullet)
 
@@ -187,6 +198,10 @@ while running:
     latitude = math.radians(0)  # Example latitude (can be adjusted)
 
     all_sprites.update(air_density, wind_speed, wind_direction, latitude)
+    bulletspeedtext = font.render("Bullet speed: {0}m/s".format(bullet_speed), True, RED)
+    spinratetext = font.render("Spin Rate: {0}".format(spin_rate), True, WHITE)
+    informationtext = small_font.render("Press the up and down arrow keys to adjust speed, left and right for adjusting spin".format(spin_rate), True, WHITE)
+    userinput = font.render(user_text, True, (255, 255, 255))
 
     # Check for bullet-cube collision
     for bullet in bullets:
@@ -228,6 +243,9 @@ while running:
     screen.fill(BLACK)
     for sprite in all_sprites:
         screen.blit(sprite.image, sprite.rect)
+    screen.blit(spinratetext, (0, 40))
+    screen.blit(informationtext, (0, 80))
+    screen.blit(bulletspeedtext, (0,0))
 
     # Update the display
     pygame.display.flip()
