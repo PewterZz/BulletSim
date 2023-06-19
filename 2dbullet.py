@@ -22,7 +22,7 @@ bullet_speed = 10
 
 # Define bullet class
 class Bullet(pygame.sprite.Sprite):
-    def __init__(self, x, y, angle, speed, shape, drag_coefficient):
+    def __init__(self, x, y, angle, speed, shape, drag_coefficient, spin_rate):
         super().__init__()
         self.image = pygame.Surface((10, 10))
         self.image.fill(WHITE)
@@ -34,9 +34,11 @@ class Bullet(pygame.sprite.Sprite):
         self.mass = 0.05
         self.shape = shape
         self.drag_coefficient = drag_coefficient
+        self.spin_rate = spin_rate
+        self.angular_velocity = self.spin_rate * self.shape / 2  # Assume constant angular velocity for simplicity
 
     def update(self, air_density, wind_speed, wind_direction, latitude):
-        # Calculate bullet's acceleration due to air resistance and gravity
+        # Calculate bullet's acceleration due to air resistance, gravity, and Magnus effect
         bullet_velocity = np.linalg.norm(self.velocity)
         bullet_drag = 0.5 * air_density * bullet_velocity**2 * self.drag_coefficient * self.shape
         bullet_drag *= -1  # Opposite direction of bullet's velocity
@@ -44,9 +46,14 @@ class Bullet(pygame.sprite.Sprite):
         bullet_coriolis = 2 * self.velocity * np.array([-math.sin(latitude), 0.0])
         bullet_wind = wind_speed * np.array([math.cos(wind_direction), -math.sin(wind_direction)])
 
-        self.acceleration = bullet_drag + bullet_gravity + bullet_coriolis + bullet_wind
+        # Calculate Magnus effect force
+        bullet_angular_velocity = self.angular_velocity * np.array([0.0, 0.0, 1.0])
+        bullet_magnus = np.cross(bullet_angular_velocity, self.velocity)[:, np.newaxis] * self.mass * self.drag_coefficient * self.shape
 
-        self.velocity += self.acceleration
+
+        self.acceleration = bullet_drag + bullet_gravity + bullet_coriolis + bullet_wind + bullet_magnus
+
+        self.velocity += self.acceleration.flatten()[:2]
         self.rect.move_ip(self.velocity)
 
         if self.rect.right < 0 or self.rect.left > screen_width or self.rect.bottom < 0 or self.rect.top > screen_height:
@@ -168,7 +175,8 @@ while running:
                 bullet_angle = random.uniform(-5, 5)
                 bullet_shape = 0.01  # Example shape (can be adjusted)
                 bullet_drag_coefficient = 0.3  # Example drag coefficient (can be adjusted)
-                bullet = Bullet(*mouse_pos, bullet_angle, bullet_speed, bullet_shape, bullet_drag_coefficient)
+                bullet_spin_rate = 100.0  # Example spin rate (can be adjusted)
+                bullet = Bullet(*mouse_pos, bullet_angle, bullet_speed, bullet_shape, bullet_drag_coefficient, bullet_spin_rate)
                 all_sprites.add(bullet)
                 bullets.add(bullet)
 
