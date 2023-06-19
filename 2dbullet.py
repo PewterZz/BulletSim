@@ -182,7 +182,7 @@ while running:
 
     # Update
     air_density = 1.2  # Example air density (can be adjusted)
-    wind_speed = 0.0  # Example wind speed (can be adjusted)
+    wind_speed = 1.0  # Example wind speed (can be adjusted)
     wind_direction = math.radians(0)  # Example wind direction (can be adjusted)
     latitude = math.radians(0)  # Example latitude (can be adjusted)
 
