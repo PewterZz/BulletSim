@@ -14,6 +14,7 @@ bullet_kinetic_energy = 0.5 * bullet_mass * bullet_velocity**2
 energy_label = label(pos=vector(0, 5, 0), text='Kinetic Energy of Bullet: {} J'.format(bullet_kinetic_energy), height=15,
                      box=False)
 momentum_label = label(pos=vector(0, 4, 0), text='Momentum transferred: 0 kg*m/s', height=15, box=False)
+bulletvelocity_label = label(pos=vector(0, 6, 0), text='Bullet velocity: 500m/s', height=15, box=False)
 
 t = 0
 dt = 0.01
@@ -22,6 +23,7 @@ scene.autoscale = False
 running = True
 while running:
     ev = scene.waitfor('mousedown mouseup')
+    k = keysdown()
     if ev.event == 'mousedown':
         while bullet.pos.x < target.pos.x:
             rate(1000)
@@ -39,6 +41,7 @@ while running:
 
                 energy_label.text = 'Kinetic Energy: {} J'.format(final_kinetic_energy)
                 momentum_label.text = 'Momentum transferred: {} kg*m/s'.format(momentum_transferred)
+                bulletvelocity_label.text = 'Speed of the bullet: {} m/s'.format(bullet_velocity)
 
                 print('Bullet impact!')
                 print('Final Kinetic Energy: {} J'.format(final_kinetic_energy))

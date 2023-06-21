@@ -37,6 +37,7 @@ def update():
         projectile['entity'].position
 
 
+
 def camera_control():
     camera.z += held_keys['w'] * 10 * time.dt
     camera.z -= held_keys['s'] * 10 * time.dt
