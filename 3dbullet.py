@@ -145,12 +145,12 @@ class GUI:
         self.cube_mass = tk.StringVar()
         self.other_object_mass = tk.StringVar()
 
-        self.bullet_radius_label = ttk.Label(self.window, text="Bullet Size:")
+        self.bullet_radius_label = ttk.Label(self.window, text="Bullet Size (0.01 - 10):")
         self.bullet_radius_label.pack()
         self.bullet_radius_entry = ttk.Entry(self.window, textvariable=self.bullet_radius)
         self.bullet_radius_entry.pack()
 
-        self.bullet_speed_label = ttk.Label(self.window, text="Bullet Speed:")
+        self.bullet_speed_label = ttk.Label(self.window, text="Bullet Speed (0 - 120+):")
         self.bullet_speed_label.pack()
         self.bullet_speed_entry = ttk.Entry(self.window, textvariable=self.bullet_speed)
         self.bullet_speed_entry.pack()
@@ -202,7 +202,10 @@ class GUI:
         self.physics_text.insert(tk.END, f"Force: {force} N\n")
         self.physics_text.insert(tk.END, f"Velocity: {velocity} m/s\n")
         self.physics_text.insert(tk.END, f"Mass: {mass} KG\n")
-        self.physics_text.insert(tk.END, f"Distance: {distance}\n")
+        self.physics_text.insert(tk.END, f"Distance: {distance}\n\n\n")
+
+        self.physics_text.insert(tk.END, f"Orange = 'Wood' \n")
+        self.physics_text.insert(tk.END, f"Blue = 'glass'")
         self.physics_window.update_idletasks() 
 
     def update_physics_info_periodically(self):
