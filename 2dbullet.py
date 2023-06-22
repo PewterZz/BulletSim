@@ -24,6 +24,8 @@ input_rect = pygame.Rect(200, 200, 140, 32)
 user_text = 'hello'
 bullet_speed = 10
 spin_rate = 0
+air_density = 1.0  # Example air density (can be adjusted)
+wind_speed = 1.0  # Example wind speed (can be adjusted)
 
 # Define bullet class
 class Bullet(pygame.sprite.Sprite):
@@ -180,6 +182,14 @@ while running:
                 spin_rate -= 1
             elif event.key == pygame.K_RIGHT:
                 spin_rate += 1
+            elif event.key == pygame.K_w:
+                wind_speed -= 1
+            elif event.key == pygame.K_s:
+                wind_speed += 1
+            elif event.key == pygame.K_a:
+                air_density -= 1
+            elif event.key == pygame.K_d:
+                air_density += 1
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
@@ -192,15 +202,17 @@ while running:
                 bullets.add(bullet)
 
     # Update
-    air_density = 1.2  # Example air density (can be adjusted)
-    wind_speed = 1.0  # Example wind speed (can be adjusted)
+
     wind_direction = math.radians(0)  # Example wind direction (can be adjusted)
     latitude = math.radians(0)  # Example latitude (can be adjusted)
 
     all_sprites.update(air_density, wind_speed, wind_direction, latitude)
     bulletspeedtext = font.render("Bullet speed: {0}m/s".format(bullet_speed), True, RED)
     spinratetext = font.render("Spin Rate: {0}".format(spin_rate), True, WHITE)
-    informationtext = small_font.render("Press the up and down arrow keys to adjust speed, left and right for adjusting spin".format(spin_rate), True, WHITE)
+    windspeedtext = font.render("Wind Speed: {0}".format(wind_speed), True, WHITE)
+    airdensitytext = font.render("Air Density: {0}".format(air_density), True, WHITE)
+    informationtext = small_font.render("Press the up and down arrow keys to adjust speed, left and right for adjusting spin.", True, WHITE)
+    informationtext2 = small_font.render("You can also change the wind speed and air density with WASD!", True, WHITE)
     userinput = font.render(user_text, True, (255, 255, 255))
 
     # Check for bullet-cube collision
@@ -244,7 +256,10 @@ while running:
     for sprite in all_sprites:
         screen.blit(sprite.image, sprite.rect)
     screen.blit(spinratetext, (0, 40))
-    screen.blit(informationtext, (0, 80))
+    screen.blit(informationtext, (0, 180))
+    screen.blit(informationtext2, (0, 200))
+    screen.blit(airdensitytext, (0, 120))
+    screen.blit(windspeedtext, (0, 80))
     screen.blit(bulletspeedtext, (0,0))
 
     # Update the display
