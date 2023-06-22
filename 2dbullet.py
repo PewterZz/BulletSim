@@ -187,9 +187,9 @@ while running:
             elif event.key == pygame.K_s:
                 wind_speed -= 1
             elif event.key == pygame.K_a:
-                air_density += 1
-            elif event.key == pygame.K_d:
                 air_density -= 1
+            elif event.key == pygame.K_d:
+                air_density += 1
 
         if event.type == pygame.MOUSEBUTTONDOWN:
             if event.button == 1:  # Left mouse button
