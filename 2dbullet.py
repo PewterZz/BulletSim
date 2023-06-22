@@ -256,8 +256,8 @@ while running:
     for sprite in all_sprites:
         screen.blit(sprite.image, sprite.rect)
     screen.blit(spinratetext, (0, 40))
-    screen.blit(informationtext, (0, 180))
-    screen.blit(informationtext2, (0, 200))
+    screen.blit(informationtext, (0, 160))
+    screen.blit(informationtext2, (0, 180))
     screen.blit(airdensitytext, (0, 120))
     screen.blit(windspeedtext, (0, 80))
     screen.blit(bulletspeedtext, (0,0))
